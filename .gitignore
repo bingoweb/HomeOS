@@ -1,0 +1,39 @@
+# Bağımlılıklar
+node_modules/
+dist/
+build/
+
+# Ortam dosyaları
+.env
+.env.local
+.env.development
+.env.production
+
+# Log dosyaları
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editör
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+
+# Test
+coverage/
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+
+# pnpm
+.pnpm-store/
+
+# TypeScript
+*.tsbuildinfo
