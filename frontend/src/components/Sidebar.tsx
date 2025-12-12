@@ -10,25 +10,33 @@ import {
     Wifi,
     WifiOff
 } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
-import { useSystemStore } from '../stores/systemStore';
+import { useKimlikDeposu } from '../stores/authStore';
+import { useSistemDeposu } from '../stores/systemStore';
 
-const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/containers', icon: Container, label: 'Containerlar' },
-    { path: '/files', icon: FolderOpen, label: 'Dosyalar' },
-    { path: '/app-store', icon: Store, label: 'App Store' },
-    { path: '/settings', icon: Settings, label: 'Ayarlar' },
+// ============================================
+// NAVİGASYON ÖĞELERİ
+// ============================================
+
+const navigasyonOgeleri = [
+    { yol: '/', ikon: LayoutDashboard, etiket: 'Gösterge Paneli' },
+    { yol: '/konteynerler', ikon: Container, etiket: 'Konteynerler' },
+    { yol: '/dosyalar', ikon: FolderOpen, etiket: 'Dosyalar' },
+    { yol: '/uygulama-magazasi', ikon: Store, etiket: 'Uygulama Mağazası' },
+    { yol: '/ayarlar', ikon: Settings, etiket: 'Ayarlar' },
 ];
 
-export default function Sidebar() {
-    const navigate = useNavigate();
-    const logout = useAuthStore((state) => state.logout);
-    const isConnected = useSystemStore((state) => state.isConnected);
+// ============================================
+// YAN MENÜ BİLEŞENİ
+// ============================================
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
+export default function YanMenu() {
+    const yonlendir = useNavigate();
+    const cikisYap = useKimlikDeposu((durum) => durum.cikisYap);
+    const bagliMi = useSistemDeposu((durum) => durum.bagliMi);
+
+    const cikisIslemi = () => {
+        cikisYap();
+        yonlendir('/giris');
     };
 
     return (
@@ -46,10 +54,10 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            {/* Connection Status */}
+            {/* Bağlantı Durumu */}
             <div className="px-4 py-3 border-b border-white/10">
                 <div className="flex items-center gap-2 text-sm">
-                    {isConnected ? (
+                    {bagliMi ? (
                         <>
                             <Wifi className="w-4 h-4 text-green-400" />
                             <span className="text-green-400">Bağlı</span>
@@ -63,12 +71,12 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            {/* Navigation */}
+            {/* Navigasyon */}
             <nav className="flex-1 p-4 space-y-2">
-                {navItems.map((item) => (
+                {navigasyonOgeleri.map((oge) => (
                     <NavLink
-                        key={item.path}
-                        to={item.path}
+                        key={oge.yol}
+                        to={oge.yol}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                                 ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
@@ -76,16 +84,16 @@ export default function Sidebar() {
                             }`
                         }
                     >
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium">{item.label}</span>
+                        <oge.ikon className="w-5 h-5" />
+                        <span className="font-medium">{oge.etiket}</span>
                     </NavLink>
                 ))}
             </nav>
 
-            {/* Logout */}
+            {/* Çıkış */}
             <div className="p-4 border-t border-white/10">
                 <button
-                    onClick={handleLogout}
+                    onClick={cikisIslemi}
                     className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
                 >
                     <LogOut className="w-5 h-5" />
@@ -95,3 +103,6 @@ export default function Sidebar() {
         </aside>
     );
 }
+
+// Geriye uyumluluk
+export { YanMenu as Sidebar };

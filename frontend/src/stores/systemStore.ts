@@ -1,29 +1,40 @@
 import { create } from 'zustand';
 
-interface SystemStats {
+// ============================================
+// TİP TANIMLARI
+// ============================================
+
+interface SistemIstatistikleri {
     cpu: number;
-    memory: number;
+    bellek: number;
     disk: number;
-    networkRx: number;
-    networkTx: number;
+    agIndirme: number;
+    agYukleme: number;
 }
 
-interface SystemState {
-    stats: SystemStats;
-    isConnected: boolean;
-    setStats: (stats: SystemStats) => void;
-    setConnected: (connected: boolean) => void;
+interface SistemDurumu {
+    istatistikler: SistemIstatistikleri;
+    bagliMi: boolean;
+    istatistikleriGuncelle: (istatistikler: SistemIstatistikleri) => void;
+    baglantiDurumuGuncelle: (bagli: boolean) => void;
 }
 
-export const useSystemStore = create<SystemState>((set) => ({
-    stats: {
+// ============================================
+// SİSTEM DEPOSU
+// ============================================
+
+export const useSistemDeposu = create<SistemDurumu>((set) => ({
+    istatistikler: {
         cpu: 0,
-        memory: 0,
+        bellek: 0,
         disk: 0,
-        networkRx: 0,
-        networkTx: 0,
+        agIndirme: 0,
+        agYukleme: 0,
     },
-    isConnected: false,
-    setStats: (stats) => set({ stats }),
-    setConnected: (isConnected) => set({ isConnected }),
+    bagliMi: false,
+    istatistikleriGuncelle: (istatistikler) => set({ istatistikler }),
+    baglantiDurumuGuncelle: (bagliMi) => set({ bagliMi }),
 }));
+
+// Geriye uyumluluk için eski isim
+export const useSystemStore = useSistemDeposu;

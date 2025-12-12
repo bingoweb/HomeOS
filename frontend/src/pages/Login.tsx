@@ -2,38 +2,48 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Server, Eye, EyeOff, Loader2 } from 'lucide-react';
 import axios from 'axios';
-import { useAuthStore } from '../stores/authStore';
+import { useKimlikDeposu } from '../stores/authStore';
 
-export default function Login() {
-    const navigate = useNavigate();
-    const login = useAuthStore((state) => state.login);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+// ============================================
+// GİRİŞ SAYFASI
+// ============================================
 
-    const handleSubmit = async (e: React.FormEvent) => {
+export default function Giris() {
+    const yonlendir = useNavigate();
+    const girisYap = useKimlikDeposu((durum) => durum.girisYap);
+
+    // Form durumu
+    const [kullaniciAdi, setKullaniciAdi] = useState('');
+    const [sifre, setSifre] = useState('');
+    const [sifreGoster, setSifreGoster] = useState(false);
+    const [yukleniyor, setYukleniyor] = useState(false);
+    const [hata, setHata] = useState('');
+
+    const formGonder = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
-        setError('');
+        setYukleniyor(true);
+        setHata('');
 
         try {
-            const response = await axios.post('/api/auth/login', { username, password });
-            if (response.data.success) {
-                login(response.data.data.token, response.data.data.user);
-                navigate('/');
+            const yanit = await axios.post('/api/kimlik/giris', {
+                kullaniciAdi,
+                sifre
+            });
+
+            if (yanit.data.basarili) {
+                girisYap(yanit.data.veri.token, yanit.data.veri.kullanici);
+                yonlendir('/');
             }
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Giriş başarısız');
+        } catch (hataYaniti: any) {
+            setHata(hataYaniti.response?.data?.hata || 'Giriş başarısız oldu');
         } finally {
-            setIsLoading(false);
+            setYukleniyor(false);
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
-            {/* Background decoration */}
+            {/* Arka plan dekorasyonu */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl" />
@@ -50,10 +60,10 @@ export default function Login() {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
+                <form onSubmit={formGonder} className="space-y-6">
+                    {hata && (
                         <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">
-                            {error}
+                            {hata}
                         </div>
                     )}
 
@@ -63,11 +73,12 @@ export default function Login() {
                         </label>
                         <input
                             type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={kullaniciAdi}
+                            onChange={(e) => setKullaniciAdi(e.target.value)}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all"
                             placeholder="admin"
                             required
+                            autoComplete="username"
                         />
                     </div>
 
@@ -77,29 +88,31 @@ export default function Login() {
                         </label>
                         <div className="relative">
                             <input
-                                type={showPassword ? 'text' : 'password'}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                type={sifreGoster ? 'text' : 'password'}
+                                value={sifre}
+                                onChange={(e) => setSifre(e.target.value)}
                                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all pr-12"
                                 placeholder="••••••••"
                                 required
+                                autoComplete="current-password"
                             />
                             <button
                                 type="button"
-                                onClick={() => setShowPassword(!showPassword)}
+                                onClick={() => setSifreGoster(!sifreGoster)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                aria-label={sifreGoster ? 'Şifreyi gizle' : 'Şifreyi göster'}
                             >
-                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                {sifreGoster ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                         </div>
                     </div>
 
                     <button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={yukleniyor}
                         className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isLoading ? (
+                        {yukleniyor ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
                                 Giriş yapılıyor...
@@ -117,3 +130,6 @@ export default function Login() {
         </div>
     );
 }
+
+// Geriye uyumluluk
+export { Giris as Login };

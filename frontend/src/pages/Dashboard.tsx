@@ -10,113 +10,125 @@ import {
     Clock
 } from 'lucide-react';
 import axios from 'axios';
-import { useSystemStore } from '../stores/systemStore';
-import SystemGauge from '../components/SystemGauge';
+import { useSistemDeposu } from '../stores/systemStore';
+import SistemGostergesi from '../components/SystemGauge';
 
-interface SystemInfo {
-    cpu: { usage: number; cores: number; model: string; speed: number };
-    memory: { total: number; used: number; usagePercent: number };
-    disk: { total: number; used: number; usagePercent: number };
-    network: { interfaces: any[]; rx: number; tx: number };
-    os: { platform: string; distro: string; hostname: string; uptime: number };
+// ============================================
+// TİP TANIMLARI
+// ============================================
+
+interface SistemBilgisi {
+    cpu: { kullanim: number; cekirdekSayisi: number; model: string; hiz: number };
+    bellek: { toplam: number; kullanilan: number; kullanimYuzdesi: number };
+    disk: { toplam: number; kullanilan: number; kullanimYuzdesi: number };
+    ag: { arayuzler: any[]; indirme: number; yukleme: number };
+    isletimSistemi: { platform: string; dagitim: string; sunucuAdi: string; calismaSuresi: number };
 }
 
-interface ContainerSummary {
-    total: number;
-    running: number;
-    stopped: number;
+interface KonteynerOzeti {
+    toplam: number;
+    calisan: number;
+    durmus: number;
 }
 
-function formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 B';
+// ============================================
+// YARDIMCI FONKSİYONLAR
+// ============================================
+
+function baytFormatla(bayt: number): string {
+    if (bayt === 0) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    const birimler = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bayt) / Math.log(k));
+    return parseFloat((bayt / Math.pow(k, i)).toFixed(1)) + ' ' + birimler[i];
 }
 
-function formatUptime(seconds: number): string {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+function calismaSuresiFormatla(saniye: number): string {
+    const gun = Math.floor(saniye / 86400);
+    const saat = Math.floor((saniye % 86400) / 3600);
+    const dakika = Math.floor((saniye % 3600) / 60);
 
-    if (days > 0) return `${days}g ${hours}s ${minutes}d`;
-    if (hours > 0) return `${hours}s ${minutes}d`;
-    return `${minutes}d`;
+    if (gun > 0) return `${gun}g ${saat}s ${dakika}d`;
+    if (saat > 0) return `${saat}s ${dakika}d`;
+    return `${dakika}d`;
 }
 
-export default function Dashboard() {
-    const { stats, setStats, setConnected } = useSystemStore();
-    const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-    const [containers, setContainers] = useState<ContainerSummary>({ total: 0, running: 0, stopped: 0 });
-    const [loading, setLoading] = useState(true);
+// ============================================
+// GÖSTERGE PANELİ
+// ============================================
+
+export default function GostergePaneli() {
+    const { istatistikler, istatistikleriGuncelle, baglantiDurumuGuncelle } = useSistemDeposu();
+    const [sistemBilgisi, setSistemBilgisi] = useState<SistemBilgisi | null>(null);
+    const [konteynerler, setKonteynerler] = useState<KonteynerOzeti>({ toplam: 0, calisan: 0, durmus: 0 });
+    const [yukleniyor, setYukleniyor] = useState(true);
 
     useEffect(() => {
-        // Fetch initial system info
-        const fetchSystemInfo = async () => {
+        // Sistem bilgilerini getir
+        const sistemBilgisiGetir = async () => {
             try {
-                const response = await axios.get('/api/system/info');
-                if (response.data.success) {
-                    setSystemInfo(response.data.data);
+                const yanit = await axios.get('/api/sistem/bilgi');
+                if (yanit.data.basarili) {
+                    setSistemBilgisi(yanit.data.veri);
                 }
-            } catch (error) {
-                console.error('System info error:', error);
+            } catch (hata) {
+                console.error('Sistem bilgisi hatası:', hata);
             }
         };
 
-        // Fetch container summary
-        const fetchContainers = async () => {
+        // Konteyner özetini getir
+        const konteynerGetir = async () => {
             try {
-                const response = await axios.get('/api/docker/containers');
-                if (response.data.success) {
-                    const all = response.data.data;
-                    setContainers({
-                        total: all.length,
-                        running: all.filter((c: any) => c.state === 'running').length,
-                        stopped: all.filter((c: any) => c.state !== 'running').length
+                const yanit = await axios.get('/api/docker/konteynerler');
+                if (yanit.data.basarili) {
+                    const tumKonteynerler = yanit.data.veri;
+                    setKonteynerler({
+                        toplam: tumKonteynerler.length,
+                        calisan: tumKonteynerler.filter((k: any) => k.calismaDurumu === 'running').length,
+                        durmus: tumKonteynerler.filter((k: any) => k.calismaDurumu !== 'running').length
                     });
                 }
-            } catch (error) {
-                console.error('Container fetch error:', error);
+            } catch (hata) {
+                console.error('Konteyner getirme hatası:', hata);
             }
         };
 
-        fetchSystemInfo();
-        fetchContainers();
-        setLoading(false);
+        sistemBilgisiGetir();
+        konteynerGetir();
+        setYukleniyor(false);
 
-        // WebSocket connection for real-time stats
+        // WebSocket bağlantısı - gerçek zamanlı istatistikler
         const ws = new WebSocket(`ws://${window.location.host}/ws`);
 
         ws.onopen = () => {
-            setConnected(true);
+            baglantiDurumuGuncelle(true);
         };
 
-        ws.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            if (message.type === 'system-stats') {
-                setStats(message.data);
+        ws.onmessage = (olay) => {
+            const mesaj = JSON.parse(olay.data);
+            if (mesaj.tip === 'sistem-istatistikleri') {
+                istatistikleriGuncelle(mesaj.veri);
             }
         };
 
         ws.onclose = () => {
-            setConnected(false);
+            baglantiDurumuGuncelle(false);
         };
 
         ws.onerror = () => {
-            setConnected(false);
+            baglantiDurumuGuncelle(false);
         };
 
-        // Polling for container updates
-        const containerInterval = setInterval(fetchContainers, 10000);
+        // Konteyner güncellemesi için polling
+        const konteynerAraligi = setInterval(konteynerGetir, 10000);
 
         return () => {
             ws.close();
-            clearInterval(containerInterval);
+            clearInterval(konteynerAraligi);
         };
-    }, [setStats, setConnected]);
+    }, [istatistikleriGuncelle, baglantiDurumuGuncelle]);
 
-    if (loading) {
+    if (yukleniyor) {
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
@@ -126,10 +138,10 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Header */}
+            {/* Başlık */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+                    <h1 className="text-3xl font-bold text-white">Gösterge Paneli</h1>
                     <p className="text-gray-400 mt-1">Sistem durumu ve genel bakış</p>
                 </div>
                 <div className="flex items-center gap-2 text-gray-400">
@@ -138,26 +150,26 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* System Info Card */}
-            {systemInfo && (
+            {/* Sistem Bilgisi Kartı */}
+            {sistemBilgisi && (
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center">
                             <Server className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-white">{systemInfo.os.hostname}</h2>
-                            <p className="text-gray-400">{systemInfo.os.distro} • {systemInfo.cpu.model}</p>
+                            <h2 className="text-xl font-semibold text-white">{sistemBilgisi.isletimSistemi.sunucuAdi}</h2>
+                            <p className="text-gray-400">{sistemBilgisi.isletimSistemi.dagitim} • {sistemBilgisi.cpu.model}</p>
                         </div>
                         <div className="ml-auto text-right">
                             <p className="text-sm text-gray-400">Çalışma Süresi</p>
-                            <p className="text-lg font-semibold text-white">{formatUptime(systemInfo.os.uptime)}</p>
+                            <p className="text-lg font-semibold text-white">{calismaSuresiFormatla(sistemBilgisi.isletimSistemi.calismaSuresi)}</p>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Stats Grid */}
+            {/* İstatistik Kartları */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* CPU */}
                 <div className="glass-card rounded-2xl p-6">
@@ -166,17 +178,17 @@ export default function Dashboard() {
                             <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                                 <Cpu className="w-5 h-5 text-blue-400" />
                             </div>
-                            <span className="font-semibold text-white">CPU</span>
+                            <span className="font-semibold text-white">İşlemci</span>
                         </div>
                         <Activity className="w-5 h-5 text-gray-400" />
                     </div>
-                    <SystemGauge value={stats.cpu} color="#3b82f6" />
+                    <SistemGostergesi deger={istatistikler.cpu} renk="#3b82f6" />
                     <p className="text-center text-gray-400 text-sm mt-2">
-                        {systemInfo?.cpu.cores} Cores @ {systemInfo?.cpu.speed} GHz
+                        {sistemBilgisi?.cpu.cekirdekSayisi} Çekirdek @ {sistemBilgisi?.cpu.hiz} GHz
                     </p>
                 </div>
 
-                {/* Memory */}
+                {/* Bellek */}
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -186,9 +198,9 @@ export default function Dashboard() {
                             <span className="font-semibold text-white">Bellek</span>
                         </div>
                     </div>
-                    <SystemGauge value={stats.memory} color="#22c55e" />
+                    <SistemGostergesi deger={istatistikler.bellek} renk="#22c55e" />
                     <p className="text-center text-gray-400 text-sm mt-2">
-                        {formatBytes(systemInfo?.memory.used || 0)} / {formatBytes(systemInfo?.memory.total || 0)}
+                        {baytFormatla(sistemBilgisi?.bellek.kullanilan || 0)} / {baytFormatla(sistemBilgisi?.bellek.toplam || 0)}
                     </p>
                 </div>
 
@@ -202,13 +214,13 @@ export default function Dashboard() {
                             <span className="font-semibold text-white">Disk</span>
                         </div>
                     </div>
-                    <SystemGauge value={stats.disk} color="#a855f7" />
+                    <SistemGostergesi deger={istatistikler.disk} renk="#a855f7" />
                     <p className="text-center text-gray-400 text-sm mt-2">
-                        {formatBytes(systemInfo?.disk.used || 0)} / {formatBytes(systemInfo?.disk.total || 0)}
+                        {baytFormatla(sistemBilgisi?.disk.kullanilan || 0)} / {baytFormatla(sistemBilgisi?.disk.toplam || 0)}
                     </p>
                 </div>
 
-                {/* Network */}
+                {/* Ağ */}
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -221,11 +233,11 @@ export default function Dashboard() {
                     <div className="text-center py-4">
                         <div className="flex justify-center gap-8">
                             <div>
-                                <p className="text-2xl font-bold text-green-400">↓ {formatBytes(stats.networkRx)}/s</p>
+                                <p className="text-2xl font-bold text-green-400">↓ {baytFormatla(istatistikler.agIndirme)}/s</p>
                                 <p className="text-xs text-gray-400">İndirme</p>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-blue-400">↑ {formatBytes(stats.networkTx)}/s</p>
+                                <p className="text-2xl font-bold text-blue-400">↑ {baytFormatla(istatistikler.agYukleme)}/s</p>
                                 <p className="text-xs text-gray-400">Yükleme</p>
                             </div>
                         </div>
@@ -233,25 +245,25 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Containers Summary */}
+            {/* Konteyner Özeti */}
             <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
                         <Container className="w-5 h-5 text-cyan-400" />
                     </div>
-                    <h2 className="text-xl font-semibold text-white">Containerlar</h2>
+                    <h2 className="text-xl font-semibold text-white">Konteynerler</h2>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-white/5 rounded-xl">
-                        <p className="text-3xl font-bold text-white">{containers.total}</p>
+                        <p className="text-3xl font-bold text-white">{konteynerler.toplam}</p>
                         <p className="text-gray-400 text-sm">Toplam</p>
                     </div>
                     <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                        <p className="text-3xl font-bold text-green-400">{containers.running}</p>
+                        <p className="text-3xl font-bold text-green-400">{konteynerler.calisan}</p>
                         <p className="text-gray-400 text-sm">Çalışıyor</p>
                     </div>
                     <div className="text-center p-4 bg-red-500/10 rounded-xl border border-red-500/20">
-                        <p className="text-3xl font-bold text-red-400">{containers.stopped}</p>
+                        <p className="text-3xl font-bold text-red-400">{konteynerler.durmus}</p>
                         <p className="text-gray-400 text-sm">Durduruldu</p>
                     </div>
                 </div>
@@ -259,3 +271,6 @@ export default function Dashboard() {
         </div>
     );
 }
+
+// Geriye uyumluluk
+export { GostergePaneli as Dashboard };

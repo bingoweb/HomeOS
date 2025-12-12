@@ -7,102 +7,112 @@ import {
     ArrowUp,
     RefreshCw,
     Search,
-    Download,
     Trash2,
-    FolderPlus,
-    Upload
+    FolderPlus
 } from 'lucide-react';
 import axios from 'axios';
 
-interface FileInfo {
-    name: string;
-    path: string;
-    type: 'file' | 'directory';
-    size: number;
-    modified: string;
+// ============================================
+// TİP TANIMLARI
+// ============================================
+
+interface DosyaBilgisi {
+    ad: string;
+    yol: string;
+    tip: 'dosya' | 'klasor';
+    boyut: number;
+    degistirilme: string;
 }
 
-function formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 B';
+// ============================================
+// YARDIMCI FONKSİYONLAR
+// ============================================
+
+function baytFormatla(bayt: number): string {
+    if (bayt === 0) return '0 B';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    const birimler = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bayt) / Math.log(k));
+    return parseFloat((bayt / Math.pow(k, i)).toFixed(1)) + ' ' + birimler[i];
 }
 
-export default function Files() {
-    const [files, setFiles] = useState<FileInfo[]>([]);
-    const [currentPath, setCurrentPath] = useState('/');
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+// ============================================
+// DOSYALAR SAYFASI
+// ============================================
 
-    const fetchFiles = async (path: string = '/') => {
-        setLoading(true);
+export default function Dosyalar() {
+    const [dosyalar, setDosyalar] = useState<DosyaBilgisi[]>([]);
+    const [mevcutYol, setMevcutYol] = useState('/');
+    const [yukleniyor, setYukleniyor] = useState(true);
+    const [arama, setArama] = useState('');
+
+    const dosyalariGetir = async (yol: string = '/') => {
+        setYukleniyor(true);
         try {
-            const response = await axios.get(`/api/files/list?path=${encodeURIComponent(path)}`);
-            if (response.data.success) {
-                setFiles(response.data.data);
-                setCurrentPath(path);
+            const yanit = await axios.get(`/api/dosyalar/listele?yol=${encodeURIComponent(yol)}`);
+            if (yanit.data.basarili) {
+                setDosyalar(yanit.data.veri);
+                setMevcutYol(yol);
             }
-        } catch (error) {
-            console.error('File fetch error:', error);
+        } catch (hata) {
+            console.error('Dosya getirme hatası:', hata);
         } finally {
-            setLoading(false);
+            setYukleniyor(false);
         }
     };
 
     useEffect(() => {
-        fetchFiles();
+        dosyalariGetir();
     }, []);
 
-    const handleNavigate = (file: FileInfo) => {
-        if (file.type === 'directory') {
-            const newPath = currentPath === '/' ? `/${file.name}` : `${currentPath}/${file.name}`;
-            fetchFiles(newPath);
+    const gezinmeyeGit = (dosya: DosyaBilgisi) => {
+        if (dosya.tip === 'klasor') {
+            const yeniYol = mevcutYol === '/' ? `/${dosya.ad}` : `${mevcutYol}/${dosya.ad}`;
+            dosyalariGetir(yeniYol);
         }
     };
 
-    const handleGoUp = () => {
-        const parts = currentPath.split('/').filter(Boolean);
-        parts.pop();
-        const newPath = parts.length === 0 ? '/' : '/' + parts.join('/');
-        fetchFiles(newPath);
+    const ustDizineGit = () => {
+        const parcalar = mevcutYol.split('/').filter(Boolean);
+        parcalar.pop();
+        const yeniYol = parcalar.length === 0 ? '/' : '/' + parcalar.join('/');
+        dosyalariGetir(yeniYol);
     };
 
-    const handleDelete = async (file: FileInfo) => {
-        if (confirm(`"${file.name}" silinecek. Emin misiniz?`)) {
+    const dosyaSil = async (dosya: DosyaBilgisi) => {
+        if (confirm(`"${dosya.ad}" silinecek. Emin misiniz?`)) {
             try {
-                const fullPath = currentPath === '/' ? `/${file.name}` : `${currentPath}/${file.name}`;
-                await axios.delete(`/api/files/delete?path=${encodeURIComponent(fullPath)}`);
-                fetchFiles(currentPath);
-            } catch (error) {
-                console.error('Delete error:', error);
+                const tamYol = mevcutYol === '/' ? `/${dosya.ad}` : `${mevcutYol}/${dosya.ad}`;
+                await axios.delete(`/api/dosyalar/sil?yol=${encodeURIComponent(tamYol)}`);
+                dosyalariGetir(mevcutYol);
+            } catch (hata) {
+                console.error('Silme hatası:', hata);
             }
         }
     };
 
-    const handleCreateFolder = async () => {
-        const name = prompt('Yeni klasör adı:');
-        if (name) {
+    const klasorOlustur = async () => {
+        const ad = prompt('Yeni klasör adı:');
+        if (ad) {
             try {
-                const fullPath = currentPath === '/' ? `/${name}` : `${currentPath}/${name}`;
-                await axios.post('/api/files/mkdir', { path: fullPath });
-                fetchFiles(currentPath);
-            } catch (error) {
-                console.error('Create folder error:', error);
+                const tamYol = mevcutYol === '/' ? `/${ad}` : `${mevcutYol}/${ad}`;
+                await axios.post('/api/dosyalar/klasor-olustur', { yol: tamYol });
+                dosyalariGetir(mevcutYol);
+            } catch (hata) {
+                console.error('Klasör oluşturma hatası:', hata);
             }
         }
     };
 
-    const filteredFiles = files.filter(f =>
-        f.name.toLowerCase().includes(search.toLowerCase())
+    const filtrelenmis = dosyalar.filter(d =>
+        d.ad.toLowerCase().includes(arama.toLowerCase())
     );
 
-    const pathParts = currentPath.split('/').filter(Boolean);
+    const yolParcalari = mevcutYol.split('/').filter(Boolean);
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Header */}
+            {/* Başlık */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Dosya Yöneticisi</h1>
@@ -110,14 +120,14 @@ export default function Files() {
                 </div>
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={handleCreateFolder}
+                        onClick={klasorOlustur}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl transition-colors"
                     >
                         <FolderPlus className="w-4 h-4" />
                         Yeni Klasör
                     </button>
                     <button
-                        onClick={() => fetchFiles(currentPath)}
+                        onClick={() => dosyalariGetir(mevcutYol)}
                         className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl transition-colors"
                     >
                         <RefreshCw className="w-4 h-4" />
@@ -126,56 +136,56 @@ export default function Files() {
                 </div>
             </div>
 
-            {/* Breadcrumb */}
+            {/* Yol Gezintisi */}
             <div className="glass-card rounded-xl p-4 flex items-center gap-2 overflow-x-auto">
                 <button
-                    onClick={() => fetchFiles('/')}
+                    onClick={() => dosyalariGetir('/')}
                     className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                 >
                     <Home className="w-4 h-4 text-gray-400" />
                 </button>
-                {currentPath !== '/' && (
+                {mevcutYol !== '/' && (
                     <button
-                        onClick={handleGoUp}
+                        onClick={ustDizineGit}
                         className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                     >
                         <ArrowUp className="w-4 h-4 text-gray-400" />
                     </button>
                 )}
                 <ChevronRight className="w-4 h-4 text-gray-600" />
-                {pathParts.map((part, i) => (
+                {yolParcalari.map((parca, i) => (
                     <div key={i} className="flex items-center gap-2">
                         <button
-                            onClick={() => fetchFiles('/' + pathParts.slice(0, i + 1).join('/'))}
+                            onClick={() => dosyalariGetir('/' + yolParcalari.slice(0, i + 1).join('/'))}
                             className="text-gray-300 hover:text-white transition-colors"
                         >
-                            {part}
+                            {parca}
                         </button>
-                        {i < pathParts.length - 1 && (
+                        {i < yolParcalari.length - 1 && (
                             <ChevronRight className="w-4 h-4 text-gray-600" />
                         )}
                     </div>
                 ))}
             </div>
 
-            {/* Search */}
+            {/* Arama */}
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                     type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={arama}
+                    onChange={(e) => setArama(e.target.value)}
                     placeholder="Dosya ara..."
                     className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50"
                 />
             </div>
 
-            {/* File List */}
-            {loading ? (
+            {/* Dosya Listesi */}
+            {yukleniyor ? (
                 <div className="flex items-center justify-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
                 </div>
-            ) : filteredFiles.length === 0 ? (
+            ) : filtrelenmis.length === 0 ? (
                 <div className="glass-card rounded-2xl p-12 text-center">
                     <FolderOpen className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-white mb-2">Klasör Boş</h3>
@@ -193,32 +203,32 @@ export default function Files() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredFiles.map((file, index) => (
+                            {filtrelenmis.map((dosya, index) => (
                                 <tr
                                     key={index}
                                     className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
-                                    onClick={() => handleNavigate(file)}
+                                    onClick={() => gezinmeyeGit(dosya)}
                                 >
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
-                                            {file.type === 'directory' ? (
+                                            {dosya.tip === 'klasor' ? (
                                                 <FolderOpen className="w-5 h-5 text-yellow-400" />
                                             ) : (
                                                 <File className="w-5 h-5 text-gray-400" />
                                             )}
-                                            <span className="text-white">{file.name}</span>
+                                            <span className="text-white">{dosya.ad}</span>
                                         </div>
                                     </td>
                                     <td className="py-4 px-6 text-gray-400 hidden md:table-cell">
-                                        {file.type === 'file' ? formatBytes(file.size) : '--'}
+                                        {dosya.tip === 'dosya' ? baytFormatla(dosya.boyut) : '--'}
                                     </td>
                                     <td className="py-4 px-6 text-gray-400 hidden lg:table-cell">
-                                        {new Date(file.modified).toLocaleString('tr-TR')}
+                                        {new Date(dosya.degistirilme).toLocaleString('tr-TR')}
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); handleDelete(file); }}
+                                                onClick={(e) => { e.stopPropagation(); dosyaSil(dosya); }}
                                                 className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
                                                 title="Sil"
                                             >
@@ -235,3 +245,6 @@ export default function Files() {
         </div>
     );
 }
+
+// Geriye uyumluluk
+export { Dosyalar as Files };

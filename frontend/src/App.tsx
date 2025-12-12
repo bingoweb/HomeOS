@@ -1,45 +1,53 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from './stores/authStore';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
-import Containers from './pages/Containers';
-import Files from './pages/Files';
-import Settings from './pages/Settings';
-import AppStore from './pages/AppStore';
-import Login from './pages/Login';
+import { useKimlikDeposu } from './stores/authStore';
+import YanMenu from './components/Sidebar';
+import GostergePaneli from './pages/Dashboard';
+import Konteynerler from './pages/Containers';
+import Dosyalar from './pages/Files';
+import Ayarlar from './pages/Settings';
+import UygulamaMagazasi from './pages/AppStore';
+import Giris from './pages/Login';
 
-function ProtectedLayout() {
-    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+// ============================================
+// KORUMALI LAYOUT
+// ============================================
 
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+function KorumalıLayout() {
+    const girisYapildiMi = useKimlikDeposu((durum) => durum.girisYapildiMi);
+
+    if (!girisYapildiMi) {
+        return <Navigate to="/giris" replace />;
     }
 
     return (
         <div className="flex min-h-screen">
-            <Sidebar />
+            <YanMenu />
             <main className="flex-1 ml-64 p-6">
                 <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/containers" element={<Containers />} />
-                    <Route path="/files" element={<Files />} />
-                    <Route path="/app-store" element={<AppStore />} />
-                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/" element={<GostergePaneli />} />
+                    <Route path="/konteynerler" element={<Konteynerler />} />
+                    <Route path="/dosyalar" element={<Dosyalar />} />
+                    <Route path="/uygulama-magazasi" element={<UygulamaMagazasi />} />
+                    <Route path="/ayarlar" element={<Ayarlar />} />
                 </Routes>
             </main>
         </div>
     );
 }
 
-function App() {
+// ============================================
+// ANA UYGULAMA
+// ============================================
+
+function Uygulama() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/*" element={<ProtectedLayout />} />
+                <Route path="/giris" element={<Giris />} />
+                <Route path="/*" element={<KorumalıLayout />} />
             </Routes>
         </BrowserRouter>
     );
 }
 
-export default App;
+export default Uygulama;

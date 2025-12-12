@@ -1,30 +1,41 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface User {
-    username: string;
-    role: string;
+// ============================================
+// TİP TANIMLARI
+// ============================================
+
+interface Kullanici {
+    kullaniciAdi: string;
+    rol: string;
 }
 
-interface AuthState {
+interface KimlikDurumu {
     token: string | null;
-    user: User | null;
-    isAuthenticated: boolean;
-    login: (token: string, user: User) => void;
-    logout: () => void;
+    kullanici: Kullanici | null;
+    girisYapildiMi: boolean;
+    girisYap: (token: string, kullanici: Kullanici) => void;
+    cikisYap: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
+// ============================================
+// KİMLİK DEPOSU
+// ============================================
+
+export const useKimlikDeposu = create<KimlikDurumu>()(
     persist(
         (set) => ({
             token: null,
-            user: null,
-            isAuthenticated: false,
-            login: (token, user) => set({ token, user, isAuthenticated: true }),
-            logout: () => set({ token: null, user: null, isAuthenticated: false }),
+            kullanici: null,
+            girisYapildiMi: false,
+            girisYap: (token, kullanici) => set({ token, kullanici, girisYapildiMi: true }),
+            cikisYap: () => set({ token: null, kullanici: null, girisYapildiMi: false }),
         }),
         {
-            name: 'homeos-auth',
+            name: 'homeos-kimlik', // localStorage anahtarı
         }
     )
 );
+
+// Geriye uyumluluk için eski isim
+export const useAuthStore = useKimlikDeposu;

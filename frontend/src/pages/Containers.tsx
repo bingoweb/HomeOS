@@ -6,86 +6,93 @@ import {
     RefreshCw,
     Trash2,
     Terminal,
-    MoreVertical,
     Search,
     X
 } from 'lucide-react';
 import axios from 'axios';
 
-interface Container {
+// ============================================
+// TİP TANIMLARI
+// ============================================
+
+interface Konteyner {
     id: string;
-    name: string;
-    image: string;
-    status: string;
-    state: string;
-    created: number;
-    ports: { privatePort: number; publicPort?: number; type: string }[];
+    ad: string;
+    imaj: string;
+    durum: string;
+    calismaDurumu: string;
+    olusturulma: number;
+    portlar: { dahiliPort: number; hariciPort?: number; tip: string }[];
 }
 
-export default function Containers() {
-    const [containers, setContainers] = useState<Container[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [selectedContainer, setSelectedContainer] = useState<string | null>(null);
-    const [logs, setLogs] = useState<string>('');
-    const [showLogs, setShowLogs] = useState(false);
-    const [actionLoading, setActionLoading] = useState<string | null>(null);
+// ============================================
+// KONTEYNERLER SAYFASI
+// ============================================
 
-    const fetchContainers = async () => {
+export default function Konteynerler() {
+    const [konteynerler, setKonteynerler] = useState<Konteyner[]>([]);
+    const [yukleniyor, setYukleniyor] = useState(true);
+    const [arama, setArama] = useState('');
+    const [seciliKonteyner, setSeciliKonteyner] = useState<string | null>(null);
+    const [loglar, setLoglar] = useState<string>('');
+    const [logGoster, setLogGoster] = useState(false);
+    const [islemYukleniyor, setIslemYukleniyor] = useState<string | null>(null);
+
+    const konteynerleriGetir = async () => {
         try {
-            const response = await axios.get('/api/docker/containers');
-            if (response.data.success) {
-                setContainers(response.data.data);
+            const yanit = await axios.get('/api/docker/konteynerler');
+            if (yanit.data.basarili) {
+                setKonteynerler(yanit.data.veri);
             }
-        } catch (error) {
-            console.error('Container fetch error:', error);
+        } catch (hata) {
+            console.error('Konteyner getirme hatası:', hata);
         } finally {
-            setLoading(false);
+            setYukleniyor(false);
         }
     };
 
     useEffect(() => {
-        fetchContainers();
-        const interval = setInterval(fetchContainers, 5000);
-        return () => clearInterval(interval);
+        konteynerleriGetir();
+        const aralik = setInterval(konteynerleriGetir, 5000);
+        return () => clearInterval(aralik);
     }, []);
 
-    const handleAction = async (id: string, action: 'start' | 'stop' | 'restart' | 'remove') => {
-        setActionLoading(id);
+    const islemYap = async (id: string, islem: 'baslat' | 'durdur' | 'yenidenbaslat' | 'sil') => {
+        setIslemYukleniyor(id);
         try {
-            if (action === 'remove') {
-                await axios.delete(`/api/docker/containers/${id}?force=true`);
+            if (islem === 'sil') {
+                await axios.delete(`/api/docker/konteynerler/${id}?zorla=evet`);
             } else {
-                await axios.post(`/api/docker/containers/${id}/${action}`);
+                await axios.post(`/api/docker/konteynerler/${id}/${islem}`);
             }
-            await fetchContainers();
-        } catch (error) {
-            console.error(`Container ${action} error:`, error);
+            await konteynerleriGetir();
+        } catch (hata) {
+            console.error(`Konteyner ${islem} hatası:`, hata);
         } finally {
-            setActionLoading(null);
+            setIslemYukleniyor(null);
         }
     };
 
-    const handleShowLogs = async (id: string) => {
-        setSelectedContainer(id);
-        setShowLogs(true);
+    const loglariGoster = async (id: string) => {
+        setSeciliKonteyner(id);
+        setLogGoster(true);
         try {
-            const response = await axios.get(`/api/docker/containers/${id}/logs?tail=200`);
-            if (response.data.success) {
-                setLogs(response.data.data);
+            const yanit = await axios.get(`/api/docker/konteynerler/${id}/loglar?satir=200`);
+            if (yanit.data.basarili) {
+                setLoglar(yanit.data.veri);
             }
-        } catch (error) {
-            setLogs('Log alınamadı');
+        } catch (hata) {
+            setLoglar('Loglar alınamadı');
         }
     };
 
-    const filteredContainers = containers.filter(c =>
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.image.toLowerCase().includes(search.toLowerCase())
+    const filtrelenmisKonteynerler = konteynerler.filter(k =>
+        k.ad.toLowerCase().includes(arama.toLowerCase()) ||
+        k.imaj.toLowerCase().includes(arama.toLowerCase())
     );
 
-    const getStateColor = (state: string) => {
-        switch (state) {
+    const durumRenginiGetir = (durum: string) => {
+        switch (durum) {
             case 'running': return 'bg-green-500';
             case 'exited': return 'bg-red-500';
             case 'paused': return 'bg-yellow-500';
@@ -95,14 +102,14 @@ export default function Containers() {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Header */}
+            {/* Başlık */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Containerlar</h1>
-                    <p className="text-gray-400 mt-1">Docker container yönetimi</p>
+                    <h1 className="text-3xl font-bold text-white">Konteynerler</h1>
+                    <p className="text-gray-400 mt-1">Docker konteyner yönetimi</p>
                 </div>
                 <button
-                    onClick={fetchContainers}
+                    onClick={konteynerleriGetir}
                     className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl transition-colors"
                 >
                     <RefreshCw className="w-4 h-4" />
@@ -110,64 +117,64 @@ export default function Containers() {
                 </button>
             </div>
 
-            {/* Search */}
+            {/* Arama */}
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                     type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Container ara..."
+                    value={arama}
+                    onChange={(e) => setArama(e.target.value)}
+                    placeholder="Konteyner ara..."
                     className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50"
                 />
             </div>
 
-            {/* Container List */}
-            {loading ? (
+            {/* Konteyner Listesi */}
+            {yukleniyor ? (
                 <div className="flex items-center justify-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
                 </div>
-            ) : filteredContainers.length === 0 ? (
+            ) : filtrelenmisKonteynerler.length === 0 ? (
                 <div className="glass-card rounded-2xl p-12 text-center">
                     <ContainerIcon className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Container Bulunamadı</h3>
-                    <p className="text-gray-400">Docker çalışıyor mu? Container oluşturmak için App Store'u kullanın.</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">Konteyner Bulunamadı</h3>
+                    <p className="text-gray-400">Docker çalışıyor mu? Konteyner oluşturmak için Uygulama Mağazasını kullanın.</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {filteredContainers.map((container) => (
-                        <div key={container.id} className="glass-card rounded-2xl p-6">
+                    {filtrelenmisKonteynerler.map((konteyner) => (
+                        <div key={konteyner.id} className="glass-card rounded-2xl p-6">
                             <div className="flex items-center gap-4">
-                                {/* Status indicator */}
-                                <div className={`w-3 h-3 rounded-full ${getStateColor(container.state)}`} />
+                                {/* Durum göstergesi */}
+                                <div className={`w-3 h-3 rounded-full ${durumRenginiGetir(konteyner.calismaDurumu)}`} />
 
-                                {/* Container info */}
+                                {/* Konteyner bilgisi */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <h3 className="text-lg font-semibold text-white truncate">{container.name}</h3>
-                                        <span className="px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400">{container.id}</span>
+                                        <h3 className="text-lg font-semibold text-white truncate">{konteyner.ad}</h3>
+                                        <span className="px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400">{konteyner.id}</span>
                                     </div>
-                                    <p className="text-sm text-gray-400 truncate">{container.image}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{container.status}</p>
+                                    <p className="text-sm text-gray-400 truncate">{konteyner.imaj}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{konteyner.durum}</p>
                                 </div>
 
-                                {/* Ports */}
-                                {container.ports.length > 0 && (
+                                {/* Portlar */}
+                                {konteyner.portlar.length > 0 && (
                                     <div className="hidden md:flex flex-wrap gap-2">
-                                        {container.ports.filter(p => p.publicPort).map((port, i) => (
+                                        {konteyner.portlar.filter(p => p.hariciPort).map((port, i) => (
                                             <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
-                                                {port.publicPort}:{port.privatePort}
+                                                {port.hariciPort}:{port.dahiliPort}
                                             </span>
                                         ))}
                                     </div>
                                 )}
 
-                                {/* Actions */}
+                                {/* İşlemler */}
                                 <div className="flex items-center gap-2">
-                                    {container.state === 'running' ? (
+                                    {konteyner.calismaDurumu === 'running' ? (
                                         <button
-                                            onClick={() => handleAction(container.id, 'stop')}
-                                            disabled={actionLoading === container.id}
+                                            onClick={() => islemYap(konteyner.id, 'durdur')}
+                                            disabled={islemYukleniyor === konteyner.id}
                                             className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-colors"
                                             title="Durdur"
                                         >
@@ -175,8 +182,8 @@ export default function Containers() {
                                         </button>
                                     ) : (
                                         <button
-                                            onClick={() => handleAction(container.id, 'start')}
-                                            disabled={actionLoading === container.id}
+                                            onClick={() => islemYap(konteyner.id, 'baslat')}
+                                            disabled={islemYukleniyor === konteyner.id}
                                             className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-colors"
                                             title="Başlat"
                                         >
@@ -184,23 +191,23 @@ export default function Containers() {
                                         </button>
                                     )}
                                     <button
-                                        onClick={() => handleAction(container.id, 'restart')}
-                                        disabled={actionLoading === container.id}
+                                        onClick={() => islemYap(konteyner.id, 'yenidenbaslat')}
+                                        disabled={islemYukleniyor === konteyner.id}
                                         className="p-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded-xl transition-colors"
                                         title="Yeniden Başlat"
                                     >
                                         <RefreshCw className="w-5 h-5" />
                                     </button>
                                     <button
-                                        onClick={() => handleShowLogs(container.id)}
+                                        onClick={() => loglariGoster(konteyner.id)}
                                         className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors"
                                         title="Loglar"
                                     >
                                         <Terminal className="w-5 h-5" />
                                     </button>
                                     <button
-                                        onClick={() => handleAction(container.id, 'remove')}
-                                        disabled={actionLoading === container.id}
+                                        onClick={() => islemYap(konteyner.id, 'sil')}
+                                        disabled={islemYukleniyor === konteyner.id}
                                         className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors"
                                         title="Sil"
                                     >
@@ -213,18 +220,18 @@ export default function Containers() {
                 </div>
             )}
 
-            {/* Logs Modal */}
-            {showLogs && (
+            {/* Log Modalı */}
+            {logGoster && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="glass-card rounded-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
                         <div className="flex items-center justify-between p-4 border-b border-white/10">
-                            <h3 className="text-lg font-semibold text-white">Container Logları</h3>
-                            <button onClick={() => setShowLogs(false)} className="text-gray-400 hover:text-white">
+                            <h3 className="text-lg font-semibold text-white">Konteyner Logları</h3>
+                            <button onClick={() => setLogGoster(false)} className="text-gray-400 hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="flex-1 overflow-auto p-4">
-                            <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">{logs}</pre>
+                            <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">{loglar}</pre>
                         </div>
                     </div>
                 </div>
@@ -232,3 +239,6 @@ export default function Containers() {
         </div>
     );
 }
+
+// Geriye uyumluluk
+export { Konteynerler as Containers };
