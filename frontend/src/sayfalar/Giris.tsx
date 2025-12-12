@@ -124,7 +124,7 @@ export default function Giris() {
                 </form>
 
                 <p className="text-center text-gray-500 text-sm mt-6">
-                    Varsayılan: admin / admin
+                    Varsayılan: admin / admin123
                 </p>
             </div>
         </div>

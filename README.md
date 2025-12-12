@@ -69,7 +69,7 @@ pnpm dev
 
 **Varsayılan Giriş Bilgileri:**
 - Kullanıcı: `admin`
-- Şifre: `admin`
+- Şifre: `admin123`
 
 > ⚠️ **Güvenlik Uyarısı:** Production ortamında şifreyi hemen değiştirin!
 

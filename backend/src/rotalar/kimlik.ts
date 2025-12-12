@@ -21,7 +21,7 @@ const MIN_SIFRE_UZUNLUGU = 8;
 // Kullanıcı deposu (production'da veritabanı kullanılmalı)
 const kullanicilar: { [key: string]: { sifre: string; rol: string; basarisizDenemeler: number; sonDeneme: number } } = {
     admin: {
-        sifre: bcrypt.hashSync('admin', BCRYPT_ROUND),
+        sifre: bcrypt.hashSync('admin123', BCRYPT_ROUND),
         rol: 'yonetici',
         basarisizDenemeler: 0,
         sonDeneme: 0
@@ -42,8 +42,8 @@ const girisDogrulama = [
         .matches(/^[a-zA-Z0-9_]+$/)
         .withMessage('Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir'),
     body('sifre')
-        .isLength({ min: MIN_SIFRE_UZUNLUGU })
-        .withMessage(`Şifre en az ${MIN_SIFRE_UZUNLUGU} karakter olmalı`)
+        .notEmpty()
+        .withMessage('Şifre gerekli')
 ];
 
 const sifreDogrulama = [
