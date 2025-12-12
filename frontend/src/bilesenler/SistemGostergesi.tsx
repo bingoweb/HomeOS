@@ -52,6 +52,3 @@ export default function SistemGostergesi({ deger, renk, boyut = 120 }: SistemGos
         </div>
     );
 }
-
-// Geriye uyumluluk
-export { SistemGostergesi as SystemGauge };

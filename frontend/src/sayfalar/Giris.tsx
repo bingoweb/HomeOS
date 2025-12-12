@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Server, Eye, EyeOff, Loader2 } from 'lucide-react';
 import axios from 'axios';
-import { useKimlikDeposu } from '../stores/authStore';
+import { useKimlikDeposu } from '../depolar/kimlikDeposu';
 
 // ============================================
 // GİRİŞ SAYFASI
@@ -130,6 +130,3 @@ export default function Giris() {
         </div>
     );
 }
-
-// Geriye uyumluluk
-export { Giris as Login };

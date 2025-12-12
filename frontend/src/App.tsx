@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useKimlikDeposu } from './stores/authStore';
-import YanMenu from './components/Sidebar';
-import GostergePaneli from './pages/Dashboard';
-import Konteynerler from './pages/Containers';
-import Dosyalar from './pages/Files';
-import Ayarlar from './pages/Settings';
-import UygulamaMagazasi from './pages/AppStore';
-import Giris from './pages/Login';
+import { useKimlikDeposu } from './depolar/kimlikDeposu';
+import { YanMenu } from './bilesenler';
+import {
+    Giris,
+    GostergePaneli,
+    Konteynerler,
+    DosyaYoneticisi,
+    Ayarlar,
+    UygulamaMagazasi
+} from './sayfalar';
 
 // ============================================
 // KORUMALI LAYOUT
@@ -26,7 +28,7 @@ function KorumalıLayout() {
                 <Routes>
                     <Route path="/" element={<GostergePaneli />} />
                     <Route path="/konteynerler" element={<Konteynerler />} />
-                    <Route path="/dosyalar" element={<Dosyalar />} />
+                    <Route path="/dosyalar" element={<DosyaYoneticisi />} />
                     <Route path="/uygulama-magazasi" element={<UygulamaMagazasi />} />
                     <Route path="/ayarlar" element={<Ayarlar />} />
                 </Routes>

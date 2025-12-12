@@ -10,8 +10,8 @@ import {
     Clock
 } from 'lucide-react';
 import axios from 'axios';
-import { useSistemDeposu } from '../stores/systemStore';
-import SistemGostergesi from '../components/SystemGauge';
+import { useSistemDeposu } from '../depolar/sistemDeposu';
+import SistemGostergesi from '../bilesenler/SistemGostergesi';
 
 // ============================================
 // TİP TANIMLARI
@@ -64,7 +64,6 @@ export default function GostergePaneli() {
     const [yukleniyor, setYukleniyor] = useState(true);
 
     useEffect(() => {
-        // Sistem bilgilerini getir
         const sistemBilgisiGetir = async () => {
             try {
                 const yanit = await axios.get('/api/sistem/bilgi');
@@ -76,7 +75,6 @@ export default function GostergePaneli() {
             }
         };
 
-        // Konteyner özetini getir
         const konteynerGetir = async () => {
             try {
                 const yanit = await axios.get('/api/docker/konteynerler');
@@ -97,29 +95,18 @@ export default function GostergePaneli() {
         konteynerGetir();
         setYukleniyor(false);
 
-        // WebSocket bağlantısı - gerçek zamanlı istatistikler
         const ws = new WebSocket(`ws://${window.location.host}/ws`);
 
-        ws.onopen = () => {
-            baglantiDurumuGuncelle(true);
-        };
-
+        ws.onopen = () => baglantiDurumuGuncelle(true);
         ws.onmessage = (olay) => {
             const mesaj = JSON.parse(olay.data);
             if (mesaj.tip === 'sistem-istatistikleri') {
                 istatistikleriGuncelle(mesaj.veri);
             }
         };
+        ws.onclose = () => baglantiDurumuGuncelle(false);
+        ws.onerror = () => baglantiDurumuGuncelle(false);
 
-        ws.onclose = () => {
-            baglantiDurumuGuncelle(false);
-        };
-
-        ws.onerror = () => {
-            baglantiDurumuGuncelle(false);
-        };
-
-        // Konteyner güncellemesi için polling
         const konteynerAraligi = setInterval(konteynerGetir, 10000);
 
         return () => {
@@ -138,7 +125,6 @@ export default function GostergePaneli() {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Başlık */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Gösterge Paneli</h1>
@@ -150,7 +136,6 @@ export default function GostergePaneli() {
                 </div>
             </div>
 
-            {/* Sistem Bilgisi Kartı */}
             {sistemBilgisi && (
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center gap-4">
@@ -169,9 +154,7 @@ export default function GostergePaneli() {
                 </div>
             )}
 
-            {/* İstatistik Kartları */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* CPU */}
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -188,7 +171,6 @@ export default function GostergePaneli() {
                     </p>
                 </div>
 
-                {/* Bellek */}
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -204,7 +186,6 @@ export default function GostergePaneli() {
                     </p>
                 </div>
 
-                {/* Disk */}
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -220,7 +201,6 @@ export default function GostergePaneli() {
                     </p>
                 </div>
 
-                {/* Ağ */}
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -245,7 +225,6 @@ export default function GostergePaneli() {
                 </div>
             </div>
 
-            {/* Konteyner Özeti */}
             <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
@@ -271,6 +250,3 @@ export default function GostergePaneli() {
         </div>
     );
 }
-
-// Geriye uyumluluk
-export { GostergePaneli as Dashboard };

@@ -4,7 +4,7 @@ description: HomeOS proje geliştirme standartları ve kuralları
 
 # HomeOS Proje Workflow
 
-Bu workflow, HomeOS projesi için geliştirme standartlarını ve kurallarını tanımlar.
+Bu workflow, HomeOS projesi için geliştirme standartlarını ve kurallarını tanımlar. **Her geliştirme aşamasında bu kurallara uyulmalıdır.**
 
 ## 🎯 Temel Kurallar
 
@@ -23,6 +23,9 @@ git add .
 
 # Commit yap (açıklayıcı Türkçe mesaj)
 git commit -m "feat: [özellik açıklaması]"
+
+# GitHub'a gönder
+git push
 ```
 
 **Commit Mesajı Formatı:**
@@ -49,13 +52,62 @@ pnpm add <paket-adı>
 pnpm add -D <paket-adı>
 ```
 
-### 3. Dil: Türkçe
-- Tüm değişken isimleri Türkçe olabilir (camelCase)
-- Yorumlar Türkçe yazılmalı
-- Kullanıcı arayüzü metinleri Türkçe
-- README ve dokümantasyon Türkçe
-- Hata mesajları Türkçe
-- API yanıtları Türkçe
+### 3. Dil: Türkçe (ZORUNLU)
+
+**Tüm proje Türkçe olmalıdır:**
+
+#### Dosya ve Klasör İsimleri:
+
+| İngilizce | Türkçe |
+|-----------|--------|
+| `routes/` | `rotalar/` |
+| `services/` | `servisler/` |
+| `pages/` | `sayfalar/` |
+| `components/` | `bilesenler/` |
+| `stores/` | `depolar/` |
+| `helpers/` | `yardimcilar/` |
+| `types/` | `tipler/` |
+| `auth.ts` | `kimlik.ts` |
+| `system.ts` | `sistem.ts` |
+| `files.ts` | `dosyalar.ts` |
+| `docker.ts` | `docker.ts` (özel isim) |
+| `Login.tsx` | `Giris.tsx` |
+| `Dashboard.tsx` | `GostergePaneli.tsx` |
+| `Settings.tsx` | `Ayarlar.tsx` |
+| `Containers.tsx` | `Konteynerler.tsx` |
+| `Files.tsx` | `DosyaYoneticisi.tsx` |
+| `AppStore.tsx` | `UygulamaMagazasi.tsx` |
+| `Sidebar.tsx` | `YanMenu.tsx` |
+| `authStore.ts` | `kimlikDeposu.ts` |
+| `systemStore.ts` | `sistemDeposu.ts` |
+
+#### Değişken ve Fonksiyon İsimleri:
+
+| İngilizce | Türkçe |
+|-----------|--------|
+| `user` | `kullanici` |
+| `password` | `sifre` |
+| `username` | `kullaniciAdi` |
+| `token` | `token` (özel) |
+| `login` | `girisYap` |
+| `logout` | `cikisYap` |
+| `isAuthenticated` | `girisYapildiMi` |
+| `loading` | `yukleniyor` |
+| `error` | `hata` |
+| `success` | `basarili` |
+| `data` | `veri` |
+| `message` | `mesaj` |
+| `navigate` | `yonlendir` |
+| `fetch` | `getir` |
+
+#### API Yanıt Formatı:
+```json
+{
+  "basarili": true,
+  "veri": { ... },
+  "hata": null
+}
+```
 
 ### 4. Güvenlik Kontrol Listesi
 Her kod yazımında şunlar kontrol edilmeli:
@@ -64,82 +116,86 @@ Her kod yazımında şunlar kontrol edilmeli:
 - [ ] SQL Injection koruması (parametreli sorgular)
 - [ ] XSS koruması (input sanitization)
 - [ ] CSRF koruması
-- [ ] Rate limiting
-- [ ] JWT token süre kontrolü
-- [ ] Şifre hashleme (bcrypt, minimum 10 round)
+- [ ] Rate limiting (100 istek/15dk)
+- [ ] JWT token süre kontrolü (7 gün)
+- [ ] Şifre hashleme (bcrypt, minimum 12 round)
 - [ ] Hassas veri loglama engeli
-- [ ] Path traversal koruması (dosya işlemlerinde)
+- [ ] Path traversal koruması
 - [ ] Helmet.js kullanımı
 - [ ] CORS yapılandırması
+- [ ] Giriş deneme limiti (5 deneme → 15dk kilit)
 
 **Frontend:**
-- [ ] XSS koruması (dangerouslySetInnerHTML kaçınma)
+- [ ] XSS koruması (DOMPurify)
 - [ ] Input validation
-- [ ] Token güvenli saklama
-- [ ] HTTPS zorunluluğu
+- [ ] Token güvenli saklama (persist)
+- [ ] HTTPS zorunluluğu (production)
 
 ### 5. Klasör Yapısı Standardı
 
 ```
 homeos/
 ├── .agent/
-│   └── workflows/          # Proje workflow dosyaları
-├── backend/                # Node.js + TypeScript API
+│   └── workflows/
+│       └── homeos-standartlar.md   # Bu dosya
+├── .git/                           # Git deposu
+├── .gitignore
+├── README.md
+│
+├── backend/                        # Node.js + TypeScript API
 │   ├── src/
-│   │   ├── yapilandirma/   # Yapılandırma dosyaları
-│   │   ├── rotalar/        # API endpoint'leri
-│   │   ├── servisler/      # İş mantığı
-│   │   ├── yardimcilar/    # Yardımcı fonksiyonlar
-│   │   ├── tipler/         # TypeScript tipleri
-│   │   └── index.ts        # Ana giriş noktası
+│   │   ├── index.ts               # Ana sunucu
+│   │   ├── rotalar/               # API endpoint'leri
+│   │   │   ├── docker.ts
+│   │   │   ├── sistem.ts
+│   │   │   ├── dosyalar.ts
+│   │   │   └── kimlik.ts
+│   │   └── servisler/             # İş mantığı
+│   │       ├── DockerServisi.ts
+│   │       ├── SistemServisi.ts
+│   │       └── DosyaServisi.ts
 │   ├── package.json
 │   └── tsconfig.json
-├── frontend/               # React + Vite Dashboard
+│
+├── frontend/                       # React + Vite Dashboard
 │   ├── src/
-│   │   ├── sayfalar/       # Sayfa componentleri
-│   │   ├── bilesenler/     # UI componentleri
-│   │   ├── depolar/        # State yönetimi
-│   │   ├── hooklar/        # Custom React hooks
-│   │   ├── servisler/      # API çağrıları
-│   │   ├── tipler/         # TypeScript tipleri
-│   │   └── App.tsx
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   ├── index.css
+│   │   ├── sayfalar/              # Sayfa componentleri
+│   │   │   ├── index.ts
+│   │   │   ├── Giris.tsx
+│   │   │   ├── GostergePaneli.tsx
+│   │   │   ├── Konteynerler.tsx
+│   │   │   ├── DosyaYoneticisi.tsx
+│   │   │   ├── Ayarlar.tsx
+│   │   │   └── UygulamaMagazasi.tsx
+│   │   ├── bilesenler/            # UI componentleri
+│   │   │   ├── index.ts
+│   │   │   ├── YanMenu.tsx
+│   │   │   └── SistemGostergesi.tsx
+│   │   └── depolar/               # State yönetimi
+│   │       ├── index.ts
+│   │       ├── kimlikDeposu.ts
+│   │       └── sistemDeposu.ts
 │   ├── public/
+│   │   └── favicon.svg
 │   └── package.json
-├── build/                  # ISO oluşturma
-├── docs/                   # Dokümantasyon
-├── .gitignore
-└── README.md
+│
+├── build/                          # ISO oluşturma (gelecek)
+└── docs/                           # Dokümantasyon (gelecek)
 ```
 
 ## 🔄 Geliştirme Döngüsü
 
-1. **Başlamadan önce:** En son değişiklikleri çek
-2. **Kod yazarken:** Güvenlik kontrol listesini takip et
-3. **Test:** Her değişikliği test et
-4. **Commit:** Açıklayıcı Türkçe mesajla commit yap
-5. **Push:** GitHub'a gönder
+1. **Her görev başında:** Bu workflow dosyasını kontrol et
+2. **Kodlama sırasında:** Türkçe isimlendirme ve güvenlik kurallarına uy
+3. **Tamamlandığında:** Test et, commit yap, push et
 
-## 📦 Sürüm Yönetimi
+## ⚠️ ZORUNLU KURALLAR
 
-Semantic Versioning kullanılır: `MAJOR.MINOR.PATCH`
-
-- **MAJOR:** Geriye dönük uyumsuz değişiklikler
-- **MINOR:** Geriye dönük uyumlu yeni özellikler
-- **PATCH:** Geriye dönük uyumlu hata düzeltmeleri
-
-## 🚀 Deployment Komutları
-
-```bash
-# Backend build
-cd backend && pnpm build
-
-# Frontend build
-cd frontend && pnpm build
-
-# Her ikisini başlat (development)
-# Terminal 1:
-cd backend && pnpm dev
-
-# Terminal 2:
-cd frontend && pnpm dev
-```
+1. **Türkçe:** Dosya isimleri, değişkenler, yorumlar, UI metinleri HEP Türkçe
+2. **pnpm:** npm kullanılmaz
+3. **Git:** Her değişiklik commit edilir
+4. **Güvenlik:** Kontrol listesi her zaman takip edilir
+5. **Klasör Yapısı:** Yukarıdaki yapıya uyulur, dağınık çalışılmaz

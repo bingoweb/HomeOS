@@ -35,6 +35,3 @@ export const useSistemDeposu = create<SistemDurumu>((set) => ({
     istatistikleriGuncelle: (istatistikler) => set({ istatistikler }),
     baglantiDurumuGuncelle: (bagliMi) => set({ bagliMi }),
 }));
-
-// Geriye uyumluluk için eski isim
-export const useSystemStore = useSistemDeposu;

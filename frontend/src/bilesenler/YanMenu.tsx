@@ -10,8 +10,8 @@ import {
     Wifi,
     WifiOff
 } from 'lucide-react';
-import { useKimlikDeposu } from '../stores/authStore';
-import { useSistemDeposu } from '../stores/systemStore';
+import { useKimlikDeposu } from '../depolar/kimlikDeposu';
+import { useSistemDeposu } from '../depolar/sistemDeposu';
 
 // ============================================
 // NAVİGASYON ÖĞELERİ
@@ -103,6 +103,3 @@ export default function YanMenu() {
         </aside>
     );
 }
-
-// Geriye uyumluluk
-export { YanMenu as Sidebar };

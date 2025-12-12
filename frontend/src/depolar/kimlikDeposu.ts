@@ -32,10 +32,7 @@ export const useKimlikDeposu = create<KimlikDurumu>()(
             cikisYap: () => set({ token: null, kullanici: null, girisYapildiMi: false }),
         }),
         {
-            name: 'homeos-kimlik', // localStorage anahtarı
+            name: 'homeos-kimlik',
         }
     )
 );
-
-// Geriye uyumluluk için eski isim
-export const useAuthStore = useKimlikDeposu;
