@@ -45,18 +45,18 @@ export default function Giris() {
         <div className="min-h-screen flex items-center justify-center p-4">
             {/* Arka plan dekorasyonu */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl" />
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-zinc-800/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
             </div>
 
             <div className="glass-card rounded-2xl p-8 w-full max-w-md animate-fade-in relative z-10">
                 {/* Logo */}
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center mb-4 shadow-xl shadow-primary-500/30">
+                    <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4 border border-white/5">
                         <Server className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-white">HomeOS</h1>
-                    <p className="text-gray-400 text-sm mt-1">Ev Sunucu Yönetim Paneli</p>
+                    <h1 className="text-2xl font-semibold text-white">HomeOS</h1>
+                    <p className="text-zinc-500 text-sm mt-1">Ev Sunucu Yönetim Paneli</p>
                 </div>
 
                 {/* Form */}
@@ -110,7 +110,7 @@ export default function Giris() {
                     <button
                         type="submit"
                         disabled={yukleniyor}
-                        className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-primary-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3 px-4 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {yukleniyor ? (
                             <>

@@ -63,14 +63,14 @@ export default function YanMenu() {
     const NavContent = () => (
         <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
-                        <Server className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center border border-white/5">
+                        <Server className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-white tracking-tight">HomeOS</h1>
-                        <p className="text-xs text-gray-400 font-medium">Ev Sunucu Yönetimi</p>
+                        <h1 className="text-lg font-semibold text-white tracking-tight">HomeOS</h1>
+                        <p className="text-xs text-zinc-500 font-medium">Ev Sunucu Yönetimi</p>
                     </div>
                 </div>
                 {/* Mobile Close Button */}
@@ -105,17 +105,17 @@ export default function YanMenu() {
             </div>
 
             {/* Navigasyon */}
-            <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                 {navigasyonOgeleri.map((oge) => (
                     <NavLink
                         key={oge.yol}
                         to={oge.yol}
                         className={({ isActive }) =>
                             clsx(
-                                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                                 isActive
-                                    ? "bg-gradient-to-r from-primary-600/20 to-primary-600/10 text-primary-300 border border-primary-500/20"
-                                    : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                                    ? "bg-zinc-800 text-white font-medium"
+                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
                             )
                         }
                     >
@@ -123,12 +123,9 @@ export default function YanMenu() {
                             <>
                                 <oge.ikon className={clsx(
                                     "w-5 h-5 transition-colors",
-                                    isActive ? "text-primary-400" : "group-hover:text-white"
+                                    isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"
                                 )} />
-                                <span className="font-medium">{oge.etiket}</span>
-                                {isActive && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-500 rounded-r-full" />
-                                )}
+                                <span className="text-sm">{oge.etiket}</span>
                             </>
                         )}
                     </NavLink>

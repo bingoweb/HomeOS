@@ -38,9 +38,6 @@ export default function SistemGostergesi({ deger, renk, boyut = 120 }: SistemGos
                         strokeDasharray={cevre}
                         strokeDashoffset={ilerleme}
                         className="transition-all duration-500 ease-out"
-                        style={{
-                            filter: `drop-shadow(0 0 8px ${renk}40)`
-                        }}
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
