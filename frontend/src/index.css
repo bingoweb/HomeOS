@@ -1,9 +1,19 @@
+/* Google Fonts - Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* CSS Variables for theming (future dark/light mode) */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
 body {
