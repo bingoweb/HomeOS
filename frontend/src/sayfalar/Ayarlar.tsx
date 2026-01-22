@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, User, Shield, Power, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Shield, Power, Save, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { useKimlikDeposu } from '../depolar/kimlikDeposu';
 
