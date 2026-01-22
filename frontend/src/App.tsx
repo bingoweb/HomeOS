@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useKimlikDeposu } from './depolar/kimlikDeposu';
 import { YanMenu } from './bilesenler';
+import { Bildirimler } from './bilesenler/Bildirimler';
 import {
     Giris,
     GostergePaneli,
@@ -44,6 +45,7 @@ function KorumalıLayout() {
 function Uygulama() {
     return (
         <BrowserRouter>
+            <Bildirimler />
             <Routes>
                 <Route path="/giris" element={<Giris />} />
                 <Route path="/*" element={<KorumalıLayout />} />
