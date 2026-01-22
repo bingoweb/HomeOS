@@ -8,19 +8,19 @@
   }
 
   body {
-    @apply min-h-screen bg-dark-900 text-dark-50 antialiased;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    @apply min-h-screen bg-zinc-950 text-zinc-100 antialiased;
+    background: #09090b; /* Zinc 950 */
   }
 }
 
 @layer components {
   /* Glassmorphism utilities */
   .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
+    @apply bg-white/5 backdrop-blur-md border border-white/5;
   }
 
   .glass-card {
-    @apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/15 shadow-glass-md;
+    @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 shadow-glass-md;
   }
 }
 
@@ -31,13 +31,13 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-white/5 rounded;
+  @apply bg-zinc-900 rounded;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/20 rounded;
+  @apply bg-zinc-700 rounded;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/30;
+  @apply bg-zinc-600;
 }

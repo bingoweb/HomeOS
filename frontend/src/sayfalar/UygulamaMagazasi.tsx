@@ -72,17 +72,17 @@ export default function UygulamaMagazasi() {
                 {filtrelenmisUygulamalar.map((uygulama) => (
                     <div key={uygulama.id} className="glass-card rounded-2xl p-6 flex flex-col">
                         <div className="flex items-start justify-between mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 flex items-center justify-center">
-                                <Store className="w-6 h-6 text-primary-400" />
+                            <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center border border-white/5">
+                                <Store className="w-6 h-6 text-white" />
                             </div>
-                            <div className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /><span className="text-sm text-gray-400">{uygulama.puan}</span></div>
+                            <div className="flex items-center gap-1"><Star className="w-4 h-4 text-zinc-500 fill-zinc-500" /><span className="text-sm text-zinc-500">{uygulama.puan}</span></div>
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-1">{uygulama.ad}</h3>
-                        <p className="text-sm text-gray-400 mb-4 flex-1">{uygulama.aciklama}</p>
+                        <h3 className="text-lg font-medium text-white mb-1">{uygulama.ad}</h3>
+                        <p className="text-sm text-zinc-500 mb-4 flex-1">{uygulama.aciklama}</p>
                         <div className="flex flex-wrap gap-1 mb-4">
-                            {uygulama.portlar.map((port, i) => (<span key={i} className="px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400">{port}</span>))}
+                            {uygulama.portlar.map((port, i) => (<span key={i} className="px-2 py-0.5 bg-white/5 rounded text-xs text-zinc-500">{port}</span>))}
                         </div>
-                        <button onClick={() => uygulamaKur(uygulama)} disabled={kuruluyor === uygulama.id} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button onClick={() => uygulamaKur(uygulama)} disabled={kuruluyor === uygulama.id} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-900 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             {kuruluyor === uygulama.id ? (<><Loader2 className="w-4 h-4 animate-spin" />Kuruluyor...</>) : (<><Download className="w-4 h-4" />Kur</>)}
                         </button>
                     </div>

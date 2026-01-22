@@ -139,16 +139,16 @@ export default function GostergePaneli() {
             {sistemBilgisi && (
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center border border-white/5">
                             <Server className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-white">{sistemBilgisi.isletimSistemi.sunucuAdi}</h2>
-                            <p className="text-gray-400">{sistemBilgisi.isletimSistemi.dagitim} • {sistemBilgisi.cpu.model}</p>
+                            <h2 className="text-xl font-medium text-white">{sistemBilgisi.isletimSistemi.sunucuAdi}</h2>
+                            <p className="text-zinc-500">{sistemBilgisi.isletimSistemi.dagitim} • {sistemBilgisi.cpu.model}</p>
                         </div>
                         <div className="ml-auto text-right">
-                            <p className="text-sm text-gray-400">Çalışma Süresi</p>
-                            <p className="text-lg font-semibold text-white">{calismaSuresiFormatla(sistemBilgisi.isletimSistemi.calismaSuresi)}</p>
+                            <p className="text-sm text-zinc-500">Çalışma Süresi</p>
+                            <p className="text-lg font-medium text-white">{calismaSuresiFormatla(sistemBilgisi.isletimSistemi.calismaSuresi)}</p>
                         </div>
                     </div>
                 </div>
@@ -158,15 +158,15 @@ export default function GostergePaneli() {
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                                <Cpu className="w-5 h-5 text-blue-400" />
+                            <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                                <Cpu className="w-5 h-5 text-white" />
                             </div>
-                            <span className="font-semibold text-white">İşlemci</span>
+                            <span className="font-medium text-white">İşlemci</span>
                         </div>
-                        <Activity className="w-5 h-5 text-gray-400" />
+                        <Activity className="w-5 h-5 text-zinc-600" />
                     </div>
-                    <SistemGostergesi deger={istatistikler.cpu} renk="#3b82f6" />
-                    <p className="text-center text-gray-400 text-sm mt-2">
+                    <SistemGostergesi deger={istatistikler.cpu} renk="#ffffff" />
+                    <p className="text-center text-zinc-500 text-sm mt-2">
                         {sistemBilgisi?.cpu.cekirdekSayisi} Çekirdek @ {sistemBilgisi?.cpu.hiz} GHz
                     </p>
                 </div>
@@ -174,14 +174,14 @@ export default function GostergePaneli() {
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                                <MemoryStick className="w-5 h-5 text-green-400" />
+                            <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                                <MemoryStick className="w-5 h-5 text-white" />
                             </div>
-                            <span className="font-semibold text-white">Bellek</span>
+                            <span className="font-medium text-white">Bellek</span>
                         </div>
                     </div>
-                    <SistemGostergesi deger={istatistikler.bellek} renk="#22c55e" />
-                    <p className="text-center text-gray-400 text-sm mt-2">
+                    <SistemGostergesi deger={istatistikler.bellek} renk="#e4e4e7" />
+                    <p className="text-center text-zinc-500 text-sm mt-2">
                         {baytFormatla(sistemBilgisi?.bellek.kullanilan || 0)} / {baytFormatla(sistemBilgisi?.bellek.toplam || 0)}
                     </p>
                 </div>
@@ -189,14 +189,14 @@ export default function GostergePaneli() {
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                <HardDrive className="w-5 h-5 text-purple-400" />
+                            <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                                <HardDrive className="w-5 h-5 text-white" />
                             </div>
-                            <span className="font-semibold text-white">Disk</span>
+                            <span className="font-medium text-white">Disk</span>
                         </div>
                     </div>
-                    <SistemGostergesi deger={istatistikler.disk} renk="#a855f7" />
-                    <p className="text-center text-gray-400 text-sm mt-2">
+                    <SistemGostergesi deger={istatistikler.disk} renk="#a1a1aa" />
+                    <p className="text-center text-zinc-500 text-sm mt-2">
                         {baytFormatla(sistemBilgisi?.disk.kullanilan || 0)} / {baytFormatla(sistemBilgisi?.disk.toplam || 0)}
                     </p>
                 </div>
@@ -204,21 +204,21 @@ export default function GostergePaneli() {
                 <div className="glass-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                                <Network className="w-5 h-5 text-orange-400" />
+                            <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                                <Network className="w-5 h-5 text-white" />
                             </div>
-                            <span className="font-semibold text-white">Ağ</span>
+                            <span className="font-medium text-white">Ağ</span>
                         </div>
                     </div>
                     <div className="text-center py-4">
                         <div className="flex justify-center gap-8">
                             <div>
-                                <p className="text-2xl font-bold text-green-400">↓ {baytFormatla(istatistikler.agIndirme)}/s</p>
-                                <p className="text-xs text-gray-400">İndirme</p>
+                                <p className="text-2xl font-bold text-emerald-400">↓ {baytFormatla(istatistikler.agIndirme)}/s</p>
+                                <p className="text-xs text-zinc-500">İndirme</p>
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-blue-400">↑ {baytFormatla(istatistikler.agYukleme)}/s</p>
-                                <p className="text-xs text-gray-400">Yükleme</p>
+                                <p className="text-2xl font-bold text-sky-200">↑ {baytFormatla(istatistikler.agYukleme)}/s</p>
+                                <p className="text-xs text-zinc-500">Yükleme</p>
                             </div>
                         </div>
                     </div>
@@ -227,8 +227,8 @@ export default function GostergePaneli() {
 
             <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                        <Container className="w-5 h-5 text-cyan-400" />
+                    <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                        <Container className="w-5 h-5 text-white" />
                     </div>
                     <h2 className="text-xl font-semibold text-white">Konteynerler</h2>
                 </div>
