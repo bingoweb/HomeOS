@@ -1,0 +1,191 @@
+// Prisma Schema - HomeOS Database
+// Bu schema production'da PostgreSQL, development'ta SQLite kullanır
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Kullanıcı Modeli
+model Kullanici {
+  id                    String   @id @default(uuid())
+  kullaniciAdi          String   @unique
+  sifre                 String   // bcrypt hash
+  email                 String?  @unique
+  ad                    String?
+  soyad                 String?
+  rol                   String   @default("kullanici") // yonetici, kullanici
+  aktif                 Boolean  @default(true)
+  basarisizDenemeler    Int      @default(0)
+  sonDeneme             DateTime?
+  hesapKilitliMi        Boolean  @default(false)
+  hesapKilitTarihi      DateTime?
+  olusturulmaTarihi     DateTime @default(now())
+  guncellemeTarihi      DateTime @updatedAt
+  sonGirisTarihi        DateTime?
+
+  // İlişkiler
+  oturumlar             Oturum[]
+  ayarlar               KullaniciAyarlari?
+  denetimLoglari        DenetimLogu[]
+
+  @@index([kullaniciAdi])
+  @@index([email])
+  @@map("kullanicilar")
+}
+
+// Oturum Modeli (Token management)
+model Oturum {
+  id                String   @id @default(uuid())
+  kullaniciId       String
+  token             String   @unique
+  refreshToken      String?  @unique
+  ipAdresi          String?
+  userAgent         String?
+  aktif             Boolean  @default(true)
+  olusturulmaTarihi DateTime @default(now())
+  sonlanmaTarihi    DateTime
+  sonAktivite       DateTime @default(now())
+
+  // İlişkiler
+  kullanici         Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@index([kullaniciId])
+  @@index([token])
+  @@map("oturumlar")
+}
+
+// Kullanıcı Ayarları
+model KullaniciAyarlari {
+  id                String   @id @default(uuid())
+  kullaniciId       String   @unique
+  tema              String   @default("koyu") // aydinlik, koyu, sistem
+  dil               String   @default("tr") // tr, en
+  bildirimler       Boolean  @default(true)
+  emailBildirimleri Boolean  @default(false)
+  guvenlikUyarilari Boolean  @default(true)
+  olusturulmaTarihi DateTime @default(now())
+  guncellemeTarihi  DateTime @updatedAt
+
+  // İlişkiler
+  kullanici         Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@map("kullanici_ayarlari")
+}
+
+// Denetim Logu (Audit Trail)
+model DenetimLogu {
+  id                String   @id @default(uuid())
+  kullaniciId       String?
+  aksiyon           String   // giris, cikis, sifre_degistirme, docker_islem, dosya_islem, vb.
+  kaynak            String   // kimlik, docker, dosyalar, sistem
+  detay             String?  // JSON formatında detaylar
+  ipAdresi          String?
+  userAgent         String?
+  basarili          Boolean  @default(true)
+  olusturulmaTarihi DateTime @default(now())
+
+  // İlişkiler
+  kullanici         Kullanici? @relation(fields: [kullaniciId], references: [id], onDelete: SetNull)
+
+  @@index([kullaniciId])
+  @@index([aksiyon])
+  @@index([olusturulmaTarihi])
+  @@map("denetim_loglari")
+}
+
+// Docker Container Yapılandırmaları (Saved configurations)
+model DockerYapılandırma {
+  id                String   @id @default(uuid())
+  ad                String
+  aciklama          String?
+  imajAdi           String
+  portEsleme        String?  // JSON array: [{"host": 8080, "container": 80}]
+  ortamDegiskenleri String?  // JSON object: {"KEY": "value"}
+  hacimler          String?  // JSON array: ["/host:/container"]
+  agAyarlari        String?  // JSON object
+  yenidenBaslatma   String   @default("unless-stopped") // always, unless-stopped, on-failure, no
+  aktif             Boolean  @default(true)
+  olusturulmaTarihi DateTime @default(now())
+  guncellemeTarihi  DateTime @updatedAt
+
+  @@index([ad])
+  @@map("docker_yapilandirmalar")
+}
+
+// Uygulama Mağazası (App Store) - Hazır container templates
+model UygulamaSablonu {
+  id                String   @id @default(uuid())
+  ad                String
+  aciklama          String
+  kategori          String   // medya, gelistirme, guvenlik, ag, veri, vb.
+  imaj              String
+  logo              String?  // URL veya base64
+  portlar           String?  // JSON array
+  hacimler          String?  // JSON array
+  ortamDegiskenleri String?  // JSON object (default values)
+  dokumanUrl        String?
+  etiketler         String?  // JSON array: ["nextcloud", "cloud", "storage"]
+  populer           Boolean  @default(false)
+  kurulumSayisi     Int      @default(0)
+  olusturulmaTarihi DateTime @default(now())
+  guncellemeTarihi  DateTime @updatedAt
+
+  @@index([kategori])
+  @@index([populer])
+  @@map("uygulama_sablonlari")
+}
+
+// Sistem Ayarları (Global settings)
+model SistemAyarlari {
+  id                String   @id @default(uuid())
+  anahtar           String   @unique
+  deger             String
+  tip               String   @default("string") // string, number, boolean, json
+  aciklama          String?
+  olusturulmaTarihi DateTime @default(now())
+  guncellemeTarihi  DateTime @updatedAt
+
+  @@index([anahtar])
+  @@map("sistem_ayarlari")
+}
+
+// Zamanlanmış Görevler (Scheduled tasks/backups)
+model ZamanlanmisGorev {
+  id                String   @id @default(uuid())
+  ad                String
+  tip               String   // yedekleme, temizlik, guncelleme, ozel
+  cron              String   // Cron expression: "0 2 * * *"
+  komut             String   // JSON: {"tip": "backup", "hedef": "/path"}
+  aktif             Boolean  @default(true)
+  sonCalisma        DateTime?
+  sonrakiCalisma    DateTime?
+  sonDurum          String?  // basarili, basarisiz, calisiyor
+  olusturulmaTarihi DateTime @default(now())
+  guncellemeTarihi  DateTime @updatedAt
+
+  @@index([aktif])
+  @@index([sonrakiCalisma])
+  @@map("zamanlanmis_gorevler")
+}
+
+// Bildirimler (Notifications)
+model Bildirim {
+  id                String   @id @default(uuid())
+  kullaniciId       String?  // null ise tüm kullanıcılar
+  baslik            String
+  mesaj             String
+  tip               String   @default("bilgi") // bilgi, uyari, hata, basari
+  okundu            Boolean  @default(false)
+  aksiyon           String?  // JSON: {"url": "/konteynerler", "text": "Göster"}
+  olusturulmaTarihi DateTime @default(now())
+
+  @@index([kullaniciId])
+  @@index([okundu])
+  @@index([olusturulmaTarihi])
+  @@map("bildirimler")
+}
